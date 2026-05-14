@@ -15,6 +15,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/base-ui/sidebar"
 import { getCommandPaletteShortcutHint } from "@/utils/os"
+import { PLATFORM_TARGET } from "@/utils/platform"
 import { version } from "../../../../package.json"
 import { commandPaletteOpenAtom } from "../command-palette/atoms"
 import { ProductNav } from "./product-nav"
@@ -25,6 +26,7 @@ import { WhatsNewFooter } from "./whats-new-footer"
 export function AppSidebar() {
   const setCommandPaletteOpen = useSetAtom(commandPaletteOpenAtom)
   const commandPaletteShortcutHint = getCommandPaletteShortcutHint()
+  const isThunderbird = PLATFORM_TARGET === "thunderbird"
 
   return (
     <Sidebar collapsible="icon">
@@ -36,34 +38,38 @@ export function AppSidebar() {
             {`v${version}`}
           </span>
         </a>
-        <InputGroup
-          onClick={() => setCommandPaletteOpen(true)}
-          className="bg-background"
-        >
-          <InputGroupInput
-            readOnly
-            placeholder={i18n.t("options.commandPalette.placeholder")}
-            className="cursor-pointer"
-          />
-          <InputGroupAddon>
-            <IconSearch className="size-4 text-muted-foreground group-data-[state=collapsed]:-mx-px" />
-          </InputGroupAddon>
-          <InputGroupAddon
-            align="inline-end"
-            className="group-data-[state=collapsed]:hidden"
+        {!isThunderbird && (
+          <InputGroup
+            onClick={() => setCommandPaletteOpen(true)}
+            className="bg-background"
           >
-            <Kbd>{commandPaletteShortcutHint}</Kbd>
-          </InputGroupAddon>
-        </InputGroup>
+            <InputGroupInput
+              readOnly
+              placeholder={i18n.t("options.commandPalette.placeholder")}
+              className="cursor-pointer"
+            />
+            <InputGroupAddon>
+              <IconSearch className="size-4 text-muted-foreground group-data-[state=collapsed]:-mx-px" />
+            </InputGroupAddon>
+            <InputGroupAddon
+              align="inline-end"
+              className="group-data-[state=collapsed]:hidden"
+            >
+              <Kbd>{commandPaletteShortcutHint}</Kbd>
+            </InputGroupAddon>
+          </InputGroup>
+        )}
       </SidebarHeader>
       <SidebarContent className="group-data-[state=expanded]:px-2 transition-all">
         <SettingsNav />
-        <ToolsNav />
-        <ProductNav />
+        {!isThunderbird && <ToolsNav />}
+        {!isThunderbird && <ProductNav />}
       </SidebarContent>
-      <SidebarFooter className="group-data-[state=expanded]:px-2 transition-all">
-        <WhatsNewFooter />
-      </SidebarFooter>
+      {!isThunderbird && (
+        <SidebarFooter className="group-data-[state=expanded]:px-2 transition-all">
+          <WhatsNewFooter />
+        </SidebarFooter>
+      )}
     </Sidebar>
   )
 }

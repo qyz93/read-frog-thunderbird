@@ -26,6 +26,9 @@
 
 </div>
 
+> **Thunderbird fork 说明**  
+> 本仓库 fork 自 [mengxi-ream/read-frog](https://github.com/mengxi-ream/read-frog)，并改造为 Thunderbird MailExtension。当前版本面向 Thunderbird 150+，聚焦邮件阅读翻译：整封邮件翻译、段落翻译、划词翻译/解释，以及既有 AI Provider 配置。本 Thunderbird 迁移由用户与 Codex 协作完成。请在本仓库的 GitHub Releases 中下载 `.xpi` 插件包。
+
 ![2025 Recap](/assets/2025-recap.png)
 
 <details>

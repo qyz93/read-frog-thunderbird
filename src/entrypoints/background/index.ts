@@ -4,6 +4,7 @@ import { env } from "@/env"
 import { logger } from "@/utils/logger"
 import { onMessage } from "@/utils/message"
 import { openOptionsPage } from "@/utils/navigation"
+import { PLATFORM_TARGET } from "@/utils/platform"
 import { SessionCacheGroupRegistry } from "@/utils/session-cache/session-cache-group-registry"
 import { runAiSegmentSubtitles } from "./ai-segmentation"
 import { setupAnalyticsMessageHandlers } from "./analytics"
@@ -15,6 +16,7 @@ import { cleanupAllAiSegmentationCache, cleanupAllSummaryCache, cleanupAllTransl
 import { setupEdgeTTSMessageHandlers } from "./edge-tts"
 import { setupIframeInjection } from "./iframe-injection"
 import { setupLLMGenerateTextMessageHandlers } from "./llm-generate-text"
+import { setupMailMessageTranslationHandlers } from "./mail-message-translation"
 import { initMockData } from "./mock-data"
 import { newUserGuide } from "./new-user-guide"
 import { proxyFetch } from "./proxy-fetch"
@@ -32,8 +34,8 @@ export default defineBackground({
     browser.runtime.onInstalled.addListener(async (details) => {
       await ensureInitializedConfig()
 
-      // Open tutorial page when extension is installed
-      if (details.reason === "install") {
+      // Open tutorial page when the browser extension is installed.
+      if (details.reason === "install" && PLATFORM_TARGET !== "thunderbird") {
         await browser.tabs.create({
           url: `${env.WXT_WEBSITE_URL}/guide/step-1`,
         })
@@ -57,6 +59,28 @@ export default defineBackground({
       await openOptionsPage()
     })
 
+    onMessage("clearAllTranslationRelatedCache", async () => {
+      await cleanupAllTranslationCache()
+      await cleanupAllSummaryCache()
+    })
+
+    onMessage("clearAiSegmentationCache", async () => {
+      await cleanupAllAiSegmentationCache()
+    })
+
+    setupAnalyticsMessageHandlers()
+    void setUpWebPageTranslationQueue()
+    void setUpDatabaseCleanup()
+    setUpConfigBackup()
+
+    proxyFetch()
+    setupLLMGenerateTextMessageHandlers()
+
+    if (PLATFORM_TARGET === "thunderbird") {
+      setupMailMessageTranslationHandlers()
+      return
+    }
+
     setupSidePanelMessageHandler({
       extensionBrowser: browser,
       logger,
@@ -77,17 +101,7 @@ export default defineBackground({
       dispatchBackgroundStreamPort(port)
     })
 
-    onMessage("clearAllTranslationRelatedCache", async () => {
-      await cleanupAllTranslationCache()
-      await cleanupAllSummaryCache()
-    })
-
-    onMessage("clearAiSegmentationCache", async () => {
-      await cleanupAllAiSegmentationCache()
-    })
-
     newUserGuide()
-    setupAnalyticsMessageHandlers()
     translationMessage()
 
     // Register context menu listeners synchronously
@@ -97,15 +111,10 @@ export default defineBackground({
     // Initialize context menu items asynchronously
     void initializeContextMenu()
 
-    void setUpWebPageTranslationQueue()
     void setUpSubtitlesTranslationQueue()
-    void setUpDatabaseCleanup()
-    setUpConfigBackup()
     void setupUninstallSurvey()
 
-    proxyFetch()
     setupEdgeTTSMessageHandlers()
-    setupLLMGenerateTextMessageHandlers()
     setupTTSPlaybackMessageHandlers()
     void initMockData()
 

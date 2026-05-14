@@ -10,6 +10,7 @@ const ALLOWED_BUNDLED_API_KEYS = new Set([
 ])
 const useLocalPackages = isLocalPackagesEnabled(process.env)
 const shouldSkipEnvValidation = process.env.WXT_SKIP_ENV_VALIDATION === "true"
+const isThunderbirdTarget = process.argv.includes("thunderbird")
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -17,6 +18,9 @@ export default defineConfig({
   imports: false,
   modules: ["@wxt-dev/module-react", "@wxt-dev/i18n/module"],
   manifestVersion: 3,
+  filterEntrypoints: isThunderbirdTarget
+    ? ["background", "popup", "options", "mail-display"]
+    : undefined,
   // WXT top level alias - will be automatically synced to tsconfig.json paths and Vite alias
   alias: useLocalPackages
     ? {
@@ -32,29 +36,71 @@ export default defineConfig({
     ...(mode === "development" && (browser === "chrome" || browser === "edge") && {
       key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw2KhiXO2vySZtPu5pNSbyKhYavh8Be7gXmCZt8aJf6tQ/L3JK0qzL+3JSc/o20td3Jw+B2Dcw+EI93NAZr24xKnTNXQiJpuIuHb8xLXD0Ra/HrTVi4TJIhPdESogoG4uL6CD/F3TxfZJ2trX4Bt9cdAw1RGGeU+xU0g+YFfEka4ZUCpFAmTEw9H3/DU+nCp8yGaJWyiVgCTcFe38GZKEPt0iMJkTw956wz/iiafLx0pNG/RaztG9cAPoQOD2+SMFaeQ+b/G4OG17TYhzb09AhNBl6zSJ3jTKHSwuedCFwCce8Q/EchJfQZv71mjAE97bzwvkDYPCLj31Z5FE8HntMwIDAQAB",
     }),
-    permissions: [
-      "storage",
-      "tabs",
-      "alarms",
-      "cookies",
-      "contextMenus",
-      "identity",
-      "scripting",
-      "webNavigation",
-      ...(browser !== "firefox" ? ["offscreen", "sidePanel"] : []),
-    ],
-    host_permissions: [
-      "*://*/*", // Required for scripting.executeScript in any frame
-    ],
+    permissions: browser === "thunderbird"
+      ? [
+          "storage",
+          "alarms",
+          "scripting",
+          "messagesRead",
+          "menus",
+          "sensitiveDataUpload",
+        ]
+      : [
+          "storage",
+          "tabs",
+          "alarms",
+          "cookies",
+          "contextMenus",
+          "identity",
+          "scripting",
+          "webNavigation",
+          ...(browser !== "firefox" ? ["offscreen", "sidePanel"] : []),
+        ],
+    host_permissions: browser === "thunderbird"
+      ? [
+          "https://*/*",
+          "http://localhost/*",
+          "http://127.0.0.1/*",
+          "http://[::1]/*",
+        ]
+      : [
+          "*://*/*", // Required for scripting.executeScript in any frame
+        ],
     // Allow images/SVGs referenced by content-script UI <img> tags to be loaded from
     // moz-extension:// URLs on regular pages. Firefox enforces this more strictly.
-    web_accessible_resources: [
-      {
-        resources: ["assets/*.png", "assets/*.svg", "assets/*.webp"],
-        matches: ["*://*/*", "file:///*"],
-      },
-    ],
+    ...(browser !== "thunderbird" && {
+      web_accessible_resources: [
+        {
+          resources: ["assets/*.png", "assets/*.svg", "assets/*.webp"],
+          matches: ["*://*/*", "file:///*"],
+        },
+      ],
+    }),
     // Firefox-specific settings for MV3
+    ...(browser === "thunderbird" && {
+      message_display_action: {
+        default_title: "__MSG_extName__",
+        default_label: "__MSG_extName__",
+        default_popup: "/popup.html",
+        default_icon: {
+          16: "/icon/16.png",
+          32: "/icon/32.png",
+        },
+      },
+      content_security_policy: {
+        extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
+      },
+      browser_specific_settings: {
+        gecko: {
+          id: "read-frog-thunderbird@readfrog.app",
+          strict_min_version: "150.0",
+          data_collection_permissions: {
+            required: ["none"],
+            optional: ["technicalAndInteraction"],
+          },
+        },
+      },
+    }),
     ...(browser === "firefox" && {
       // Override default CSP to exclude `upgrade-insecure-requests` (Firefox MV3 default),
       // which would upgrade custom provider HTTP URLs (e.g. LAN) to HTTPS.

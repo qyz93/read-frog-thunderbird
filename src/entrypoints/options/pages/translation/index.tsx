@@ -1,4 +1,5 @@
 import { i18n } from "#imports"
+import { PLATFORM_TARGET } from "@/utils/platform"
 import { PageLayout } from "../../components/page-layout"
 import { AIContentAware } from "./ai-content-aware"
 import { AutoTranslateLanguages } from "./auto-translate-languages"
@@ -17,21 +18,23 @@ import { TranslateRange } from "./translate-range"
 import { TranslationMode } from "./translation-mode"
 
 export function TranslationPage() {
+  const isThunderbird = PLATFORM_TARGET === "thunderbird"
+
   return (
     <PageLayout title={i18n.t("options.translation.title")} innerClassName="*:border-b [&>*:last-child]:border-b-0">
       <TranslationMode />
-      <TranslateRange />
-      <PageTranslationShortcut />
-      <NodeTranslationHotkey />
-      <CustomTranslationStyle />
-      <AIContentAware />
+      {!isThunderbird && <TranslateRange />}
+      {!isThunderbird && <PageTranslationShortcut />}
+      {!isThunderbird && <NodeTranslationHotkey />}
+      {!isThunderbird && <CustomTranslationStyle />}
+      {!isThunderbird && <AIContentAware />}
       <PersonalizedPrompts />
-      <AutoTranslateWebsitePatterns />
-      <AutoTranslateLanguages />
-      <SkipLanguages />
+      {!isThunderbird && <AutoTranslateWebsitePatterns />}
+      {!isThunderbird && <AutoTranslateLanguages />}
+      {!isThunderbird && <SkipLanguages />}
       <RequestRate />
       <RequestBatch />
-      <PreloadConfig />
+      {!isThunderbird && <PreloadConfig />}
       <SmallParagraphFilter />
       <ClearCacheConfig />
     </PageLayout>

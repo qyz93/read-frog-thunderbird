@@ -16,6 +16,7 @@ import { configAtom } from "@/utils/atoms/config"
 import { baseThemeModeAtom } from "@/utils/atoms/theme"
 import { getLocalConfig } from "@/utils/config/storage"
 import { DEFAULT_CONFIG } from "@/utils/constants/config"
+import { PLATFORM_TARGET } from "@/utils/platform"
 import { renderPersistentReactRoot } from "@/utils/react-root"
 import { queryClient } from "@/utils/tanstack-query"
 import { applyTheme, getLocalThemeMode, isDarkMode } from "@/utils/theme"
@@ -65,7 +66,7 @@ async function initApp() {
                       <AppSidebar />
                       <App />
                       <HelpButton />
-                      <SettingsSearch />
+                      {PLATFORM_TARGET !== "thunderbird" && <SettingsSearch />}
                     </RecoveryBoundary>
                   </TooltipProvider>
                 </ThemeProvider>

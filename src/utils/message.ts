@@ -46,6 +46,40 @@ interface ProtocolMap {
   askManagerToTogglePageTranslation: (data: { enabled: boolean, analyticsContext?: FeatureUsageContext }) => void
   openSelectionTranslationFromContextMenu: (data: { selectionText: string }) => void
   openSelectionCustomActionFromContextMenu: (data: { actionId: string, selectionText: string }) => void
+  // Thunderbird mail translation
+  getCurrentMailTranslationState: () => Promise<{
+    available: boolean
+    translated: boolean
+    nodes: number
+    messageCount: number
+    subject?: string
+    consentGranted: boolean
+    error?: string
+  }>
+  getMailSensitiveDataConsent: () => Promise<boolean>
+  setMailSensitiveDataConsent: (data: { granted: boolean }) => Promise<{ ok: true }>
+  toggleCurrentMailTranslation: (data: { enabled: boolean }) => Promise<
+    | { ok: true, translated: boolean, nodes: number }
+    | { ok: false, reason: "no-message" | "consent-required" | "provider-unavailable" | "provider-blocked" | "content-script-unavailable" | "failed", message?: string }
+  >
+  getMailDocumentTranslationState: () => Promise<{ translated: boolean, nodes: number }>
+  toggleMailTranslationInContentScript: (data: {
+    enabled: boolean
+    langConfig: Config["language"]
+    providerConfig: ProviderConfig
+    mode: Config["translate"]["mode"]
+    minCharactersPerNode: number
+    mailSubject?: string | null
+  }) => Promise<{ translated: boolean, nodes: number }>
+  showMailSelectionResultInContentScript: (data: {
+    action: "translate" | "explain"
+    selectionText: string
+    langConfig: Config["language"]
+    providerConfig: ProviderConfig
+    explainProviderId?: string
+    mailSubject?: string | null
+  }) => Promise<{ ok: true } | { ok: false, message: string }>
+  showMailSelectionErrorInContentScript: (data: { message: string }) => Promise<{ ok: true }>
   // analytics
   trackFeatureUsedEvent: (data: FeatureUsedEventProperties) => void
   // user guide

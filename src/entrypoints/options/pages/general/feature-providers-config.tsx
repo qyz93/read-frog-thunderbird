@@ -10,6 +10,7 @@ import { configAtom, configFieldsAtomMap, writeConfigAtom } from "@/utils/atoms/
 import { featureProviderConfigAtom } from "@/utils/atoms/provider"
 import { filterEnabledProvidersConfig, getProviderConfigById } from "@/utils/config/helpers"
 import { buildFeatureProviderPatch, FEATURE_PROVIDER_DEFS, getFeatureLabelI18nKey } from "@/utils/constants/feature-providers"
+import { PLATFORM_TARGET } from "@/utils/platform"
 import { ConfigCard } from "../../components/config-card"
 import { SetApiKeyWarning } from "../../components/set-api-key-warning"
 
@@ -109,6 +110,8 @@ function CustomActionProviderFields() {
 }
 
 export default function FeatureProvidersConfig() {
+  const isThunderbird = PLATFORM_TARGET === "thunderbird"
+
   return (
     <ConfigCard
       id="feature-providers"
@@ -119,9 +122,9 @@ export default function FeatureProvidersConfig() {
         <FeatureProviderField
           featureKey="translate"
         />
-        <FeatureProviderField featureKey="videoSubtitles" />
+        {!isThunderbird && <FeatureProviderField featureKey="videoSubtitles" />}
         <FeatureProviderField featureKey="selectionToolbar.translate" />
-        <FeatureProviderField featureKey="inputTranslation" />
+        {!isThunderbird && <FeatureProviderField featureKey="inputTranslation" />}
         <CustomActionProviderFields />
       </div>
     </ConfigCard>

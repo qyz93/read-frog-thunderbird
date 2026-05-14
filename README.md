@@ -26,6 +26,9 @@ Master languages effortlessly and deeply with AI, right in your browser.
 
 </div>
 
+> **Thunderbird fork**  
+> This repository is a Thunderbird MailExtension fork of [mengxi-ream/read-frog](https://github.com/mengxi-ream/read-frog). It targets Thunderbird 150+ and focuses on mail reading translation: full-message translation, paragraph translation, selection translation/explanation, and the existing AI provider settings. The Thunderbird migration was completed collaboratively with Codex. Download the `.xpi` package from this repository's GitHub Releases.
+
 ![2025 Recap](/assets/2025-recap.png)
 
 <details>

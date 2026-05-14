@@ -15,6 +15,7 @@ import { baseThemeModeAtom } from "@/utils/atoms/theme"
 import { getLocalConfig } from "@/utils/config/storage"
 import { DEFAULT_CONFIG } from "@/utils/constants/config"
 import { sendMessage } from "@/utils/message"
+import { PLATFORM_TARGET } from "@/utils/platform"
 import { renderPersistentReactRoot } from "@/utils/react-root"
 import { queryClient } from "@/utils/tanstack-query"
 import { getLocalThemeMode } from "@/utils/theme"
@@ -22,6 +23,7 @@ import App from "./app"
 import { getIsInPatterns, isCurrentSiteInPatternsAtom, isPageTranslatedAtom } from "./atoms/auto-translate"
 import { isIgnoreTabAtom, isIgnoreUrl } from "./atoms/ignore"
 import { isCurrentSiteInBlacklistAtom, isCurrentSiteInWhitelistAtom, isInSiteControlList } from "./atoms/site-control"
+import { ThunderbirdPopupApp } from "./thunderbird-app"
 import "@/assets/styles/text-small.css"
 import "@/assets/styles/theme.css"
 
@@ -47,6 +49,26 @@ function HydrateAtoms({
 async function initApp() {
   const root = document.getElementById("root")!
   root.className = "text-base antialiased w-[320px] bg-background"
+
+  if (PLATFORM_TARGET === "thunderbird") {
+    renderPersistentReactRoot(root, (
+      <React.StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <JotaiProvider>
+            <ThemeProvider>
+              <TooltipProvider>
+                <FrogToast />
+                <RecoveryBoundary>
+                  <ThunderbirdPopupApp />
+                </RecoveryBoundary>
+              </TooltipProvider>
+            </ThemeProvider>
+          </JotaiProvider>
+        </QueryClientProvider>
+      </React.StrictMode>
+    ))
+    return
+  }
 
   const [configValue, themeMode, activeTab] = await Promise.all([
     getLocalConfig(),
